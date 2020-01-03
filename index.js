@@ -5,28 +5,52 @@ const fs = require("fs");
 const axios = require("axios");
 var gitData;
 
-axios.get(queryURL).then(function(res) {
-  gitData = res.data;
-});
-//asdf
+const inquirer = require("inquirer");
+const axios = require("axios");
 
-(async function() {
-  try {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+var fs = require("fs");
+var convertFactory = require("electron-html-to");
+const generateHtml = require("./generateHTML");
+const util = require("util");
 
-    await page.setContent(`<h1>hellow</h1>`);
-    await page.emulateMediaFeatures("screen");
-    await page.pdf({
-      path: "profile.pdf",
-      format: "A4",
-      printBackground: true
+const writeFileAsync = util.promisify(fs.writeFile);
+
+inquirer
+  .prompt([
+    {
+      type: "input",
+      message: "Enter GitHub Name",
+      name: "username"
+    },
+    {
+      type: "list",
+      name: "color",
+      message: "Choose a color",
+      choices: ["green", "blue", "pink", "red"]
+    }
+  ])
+  .then(function(answers) {
+    const queryURL = `https://api.github.com/users/${answers.username}`;
+
+    axios.get(queryURL).then(function(res) {
+      const pdfStuff = {
+        user: answers.username,
+        color: answers.color,
+        stars: 1,
+        image: res.avatar_url,
+        followers: res.followers
+      };
+
+      const htmlDone = generateHtml(pdfStuff);
+
+      var conversion = convertFactory({
+        converterPath: convertFactory.converters.PDF
+      });
+      conversion({ html: htmlDone }, function(err, result) {
+        if (err) {
+          return console.error(err);
+        }
+        result.stream.pipe(fs.createWriteStream("pdf.pdf"));
+      });
     });
-
-    console.log("completed");
-    await browser.close();
-    process.exit();
-  } catch (e) {
-    console.log("Error", e);
-  }
-});
+  });
