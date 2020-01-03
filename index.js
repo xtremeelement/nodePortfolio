@@ -4,15 +4,8 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const axios = require("axios");
 var gitData;
-
-const inquirer = require("inquirer");
-const axios = require("axios");
-
-var fs = require("fs");
 var convertFactory = require("electron-html-to");
-const generateHtml = require("./generateHTML");
 const util = require("util");
-
 const writeFileAsync = util.promisify(fs.writeFile);
 
 inquirer
@@ -41,7 +34,7 @@ inquirer
         followers: res.followers
       };
 
-      const htmlDone = generateHtml(pdfStuff);
+      const htmlDone = generateHTML(pdfStuff);
 
       var conversion = convertFactory({
         converterPath: convertFactory.converters.PDF
